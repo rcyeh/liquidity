@@ -120,13 +120,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\AdverseSelection.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\AdverseSelection.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\..\..\Users\demon4000\Documents\R\CFEM_Data\ticks.20130423.h5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AdverseSelection.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AdverseSelection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

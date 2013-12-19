@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\AdverseSelection.cpp">
+    <None Include="..\..\..\..\Users\demon4000\Documents\R\CFEM_Data\ticks.20130423.h5">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AdverseSelection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\AdverseSelection.h">
+    <ClInclude Include="AdverseSelection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\..\Users\demon4000\Documents\R\CFEM_Data\ticks.20130423.h5">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
