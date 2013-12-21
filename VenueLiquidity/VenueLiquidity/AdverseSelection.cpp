@@ -120,7 +120,8 @@ CLASSIFICATION AdverseSelection::tickTest(int i){
 void AdverseSelection::computeClassification(bool useLeeReady){
 	int j=0;
 	float quote_mid = 0.0;
-	for (int i=tickData.size()-1; i>0; --i){
+
+	for (int i=0; i<tickData.size(); ++i){
 		char type = tickData.at(i)->type;
 		if (type == 'Q'){ 
 			quote_mid = (tickData.at(i)->ask + tickData.at(i)->bid)/2; 
