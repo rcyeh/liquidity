@@ -49,7 +49,7 @@ ExegyRow* AdverseSelection::createRow(string line){
     for(int i=0; i<25; ++i){
 		getline(myline, csvItem, ',');
 		switch(i){
-			case 0: row->row_num = atoi(csvItem.c_str()); break;
+			case 0: row->row_num = atoi(&csvItem.at(1)); break;
 			case 1: row->ask = atof(csvItem.c_str()); break;
 			case 3: row->ask_size = atoi(csvItem.c_str()); break;
 			case 4: row->bid = atof(csvItem.c_str()); break;
@@ -147,9 +147,12 @@ vector<float> AdverseSelection::calcPartWeightAvg(double percent, char exchange)
 	for (int i=0; i<trades.size(); ++i){
 		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use
 		double pwp = 0.0;
+		long cumVol = 0;
 		for (int j=i+1; j<trades.size(); ++j){
-			long cumVol = trades.at(j)->volume - trades.at(i)->volume;
-			long weight = cumVol < partVol ? trades.at(j)->size :  partVol - (trades.at(j-1)->volume - trades.at(i)->volume);
+			//long cumVol = trades.at(j)->volume - trades.at(i)->volume;
+			cumVol += trades.at(j)->size;
+			//long weight = cumVol < partVol ? trades.at(j)->size :  partVol - (trades.at(j-1)->volume - trades.at(i)->volume);
+			long weight = cumVol < partVol ? trades.at(j)->size :  partVol - (cumVol - trades.at(j)->size);
 			pwp += trades.at(j)->price * weight;
 			if (cumVol >= partVol){ 
 				pwp /= partVol;
@@ -181,7 +184,8 @@ AdverseSelection::~AdverseSelection()
 
 //Test program
 int main(int argc, char * argv[]){
-	AdverseSelection selection("Resources/sample_tick.csv");
+	AdverseSelection selection("Resources/AMZN.csv");
+	cout<<"Done Parsing"<<endl;
 	vector<float> pwpVec = selection.calcPartWeightAvg(0.1,'Q');
 	for (int i=0; i<30; ++i){
 		cout<<pwpVec.at(i)<<endl;
