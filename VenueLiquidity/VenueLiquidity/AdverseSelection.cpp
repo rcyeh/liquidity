@@ -55,7 +55,12 @@ ExegyRow* AdverseSelection::createRow(string line){
 			case 4: row->bid = atof(csvItem.c_str()); break;
 			case 6: row->bid_size = atoi(csvItem.c_str()); break;
 			case 7: row->exchange = csvItem.at(1); break;
-			case 8: row->exchange_time = atoi(csvItem.c_str()); break;
+			case 8: row->exchange_time = atoi(csvItem.c_str()); 
+				if (row->exchange_time < 1366718400000 + 52200000 ||
+					row->exchange_time > 1366718400000 + 75600000 ){ //outside market hours
+					return NULL;
+				}
+				break;
 			case 14: row->price = atof(csvItem.c_str()); break;
 			case 15: row->quals = atoi(csvItem.c_str()); 
 				if(!isValidQual(row->quals)){return NULL;}
