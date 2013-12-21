@@ -121,12 +121,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Users\demon4000\Documents\R\CFEM_Data\ticks.20130423.h5" />
+    <None Include="Resources\sample_tick.csv" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdverseSelection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h" />
+    <ClInclude Include="ExegyRow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
