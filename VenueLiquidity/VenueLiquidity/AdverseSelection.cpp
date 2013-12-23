@@ -215,7 +215,6 @@ vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
 	vector<long> cumVols = getCumVolPerEx(exchange);
 
 	float pwp = 0.0;
-	int lastPt = 0;
 	for (int i=0; i<trades.size(); ++i){
 		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use		
 		for (int j=i+1; j<trades.size(); ++j){
