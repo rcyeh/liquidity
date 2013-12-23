@@ -206,7 +206,7 @@ vector<long> AdverseSelection::getTotalSumPerEx(char exchange){
 	return totalSum;
 }
 
-//O(N) Time
+//O(nlogn)
 vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
 	vector<ExegyRow*> trades = exchange_trades_m[exchange];
 	vector<float> partWeightedPrices;
@@ -216,8 +216,12 @@ vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
 
 	float pwp = 0.0;
 	for (int i=0; i<trades.size(); ++i){
-		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use		
-		for (int j=i+1; j<trades.size(); ++j){
+		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use	
+
+		long nV = partVol + cumVols.at(i);
+		std::vector<long>::iterator low = lower_bound (cumVols.begin(), cumVols.end(), nV); 
+		int pos = low-cumVols.begin();
+		for (int j=pos; j<trades.size(); ++j){
 			long cumVol = (cumVols.at(j) - cumVols.at(i));
 			if (cumVol >= partVol){ 
 				if (cumVol > partVol){
