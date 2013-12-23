@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <stdlib.h>     
 
 using namespace std;
 using namespace H5;
@@ -18,21 +19,56 @@ struct Deleter
     }
 };
 
+//TODO, make this work...
 void AdverseSelection::parseHdf5Source()
 {
-	/*H5File file2(hdf5Source, H5F_ACC_RDONLY);
+	H5File file2(hdf5Source, H5F_ACC_RDONLY);
 	
 	DataSet dataset = file2.openDataSet("/ticks/AMZN");
 	
 	size_t size = dataset.getInMemDataSize();
 
-	ExegyRow *s = (ExegyRow*) malloc(size);
+	ExegyRawData *s = (ExegyRawData*) malloc(size);
 	CompType type = dataset.getCompType();
-	cout<<sizeof(ExegyRow)<<endl;
-	cout<<type.getNmembers()<<endl;
-	
+	for (int i=0; i<24; ++i){
+		//cout<<type.getMemberDataType(i).getTag()<<"|";
+		cout<<type.getMemberDataType(i).getClass()<<endl;
+		//dataset.read(s, type);
+	}
+	/*CompType mtype3( sizeof(ExegyRow) );
+	mtype3.insertMember("ask", 0, PredType::NATIVE_FLOAT);
+	mtype3.insertMember("ask_exchange", sizeof(float), PredType::NATIVE_CHAR);
+	mtype3.insertMember("ask_size", sizeof(char[2]), PredType::NATIVE_LONG);
+	mtype3.insertMember("bid", sizeof(long), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("bid_exchange", sizeof(float), PredType::NATIVE_CHAR);
+	mtype3.insertMember("bid_size", sizeof(char[2]), PredType::NATIVE_LONG);
+	mtype3.insertMember("exchange", sizeof(long), PredType::NATIVE_CHAR);
+	mtype3.insertMember("exchange_time", sizeof(char[2]), PredType::NATIVE_LONG);
+	mtype3.insertMember("instrument_status", sizeof(long), PredType::NATIVE_LONG);
+	mtype3.insertMember("latency", sizeof(unsigned char), PredType::NATIVE_LONG);
+	mtype3.insertMember("line", sizeof(long), PredType::NATIVE_LONG);
+	mtype3.insertMember("market_status", sizeof(unsigned int), PredType::NATIVE_LONG);
+	mtype3.insertMember("prev_close", sizeof(unsigned char), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("price", sizeof(float), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("quals", sizeof(float), PredType::NATIVE_LONG);
+	mtype3.insertMember("refresh", sizeof(unsigned int), PredType::NATIVE_CHAR);
+	mtype3.insertMember("seq_no", sizeof(char[2]), PredType::NATIVE_LONG);
+	mtype3.insertMember("size", sizeof(long), PredType::NATIVE_LONG);
+	mtype3.insertMember("sub_market", sizeof(long), PredType::NATIVE_CHAR);
+	mtype3.insertMember("symbol", sizeof(char[2]), PredType::NATIVE_CHAR);
+	mtype3.insertMember("thru_exempt", sizeof(char[9]), PredType::NATIVE_CHAR);
+	mtype3.insertMember("time", sizeof(unsigned char), PredType::NATIVE_CHAR);
+	mtype3.insertMember("type", sizeof(char[19]), PredType::NATIVE_CHAR);
+	mtype3.insertMember("volume", sizeof(char[2]), PredType::NATIVE_LONG);*/
+	memset(s,0,size);
+	//cout<<sizeof(ExegyRow)<<endl;
+	for (int i=0; i<24; ++i){
+		cout<<sizeof(char[2])<<"|"<<sizeof(long)<<endl;
+		cout<<sizeof(type.getMemberDataType(i).getClass())<<endl;
+		//dataset.read(s, type);
+	}
 	dataset.read(s, type);
-	ExegyRow r = s[0];*/
+	ExegyRawData r = s[0];
 }
 
 bool isValidQual(int qual){
@@ -55,9 +91,10 @@ ExegyRow* AdverseSelection::createRow(string line){
 			case 4: row->bid = atof(csvItem.c_str()); break;
 			case 6: row->bid_size = atoi(csvItem.c_str()); break;
 			case 7: row->exchange = csvItem.at(1); break;
-			case 8: row->exchange_time = atoi(csvItem.c_str()); 
-				if (row->exchange_time < 1366718400000 + 52200000 ||
-					row->exchange_time > 1366718400000 + 75600000 ){ //outside market hours
+			case 8: 
+				row->exchange_time = stoll(csvItem.c_str()); 
+				if (row->exchange_time < 1366718400000 + 9000000 ||
+					row->exchange_time > 1366718400000 + 32400000 ){ //outside market hours
 					return NULL;
 				}
 				break;
@@ -75,6 +112,7 @@ ExegyRow* AdverseSelection::createRow(string line){
 }
 
 void AdverseSelection::parseCsv(string fn){
+	hdf5Source = H5std_string("Resources/ticks.20130423.h5");
 	ifstream file;
 	file.open(fn,ios::in);
 	string line;
@@ -146,31 +184,59 @@ void AdverseSelection::computeClassification(bool useLeeReady){
 	}
 }
 
-vector<float> AdverseSelection::calcPartWeightAvg(double percent, char exchange){
+vector<long> AdverseSelection::getCumVolPerEx(char exchange){
+	vector<long> cumVols;
+	vector<ExegyRow*> trades = exchange_trades_m[exchange];
+	long vol = 0;
+	for (int i=0; i<trades.size(); ++i){
+		vol += trades.at(i)->size;
+		cumVols.push_back(vol);
+	}
+	return cumVols;
+}
+
+vector<long> AdverseSelection::getTotalSumPerEx(char exchange){
+	vector<long> totalSum;
+	vector<ExegyRow*> trades = exchange_trades_m[exchange];
+	long s = 0.0;
+	for (int i=0; i<trades.size(); ++i){
+		s += trades.at(i)->size * trades.at(i)->price;
+		totalSum.push_back(s);
+	}
+	return totalSum;
+}
+
+//O(N) Time
+vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
 	vector<ExegyRow*> trades = exchange_trades_m[exchange];
 	vector<float> partWeightedPrices;
-	//TODO Worst Case N^2, will modify to make it faster
+
+	vector<long> totalSum = getTotalSumPerEx(exchange);
+	vector<long> cumVols = getCumVolPerEx(exchange);
+
+	float pwp = 0.0;
+	int lastPt = 0;
 	for (int i=0; i<trades.size(); ++i){
-		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use
-		double pwp = 0.0;
-		long cumVol = 0;
+		int nextInd;
+		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use		
 		for (int j=i+1; j<trades.size(); ++j){
-			//long cumVol = trades.at(j)->volume - trades.at(i)->volume;
-			cumVol += trades.at(j)->size;
-			//long weight = cumVol < partVol ? trades.at(j)->size :  partVol - (trades.at(j-1)->volume - trades.at(i)->volume);
-			long weight = cumVol < partVol ? trades.at(j)->size :  partVol - (cumVol - trades.at(j)->size);
-			pwp += trades.at(j)->price * weight;
+			long cumVol = (cumVols.at(j) - cumVols.at(i));
 			if (cumVol >= partVol){ 
-				pwp /= partVol;
+				if (cumVol > partVol){
+					long diff = cumVol - partVol;
+					pwp = (totalSum.at(j) - totalSum.at(i) - (trades.at(j)->price*diff))/(cumVols.at(j) - cumVols.at(i) - diff);
+				}else{
+					pwp = (totalSum.at(j) - totalSum.at(i))/(cumVols.at(j) - cumVols.at(i));
+				}
 				partWeightedPrices.push_back(pwp);
-				break; 
+				break;
 			}
 		}
 	}
 	return partWeightedPrices;
 }
 
-vector<float> AdverseSelection::calcAdverseSelection(double percent, char exchange){
+vector<float> AdverseSelection::calcAdverseSelection(float percent, char exchange){
 	vector<float> pwp = calcPartWeightAvg(percent, exchange);
 	vector<float> adverseSelection;
 	vector<ExegyRow*> egrs = exchange_trades_m[exchange];
@@ -182,23 +248,23 @@ vector<float> AdverseSelection::calcAdverseSelection(double percent, char exchan
 	return adverseSelection;
 }
 
-AdverseSelection::~AdverseSelection()
-{
+AdverseSelection::~AdverseSelection(){
 	std::for_each (tickData.begin(), tickData.end(), Deleter());
     tickData.clear();
 }
 
 //Test program
 int main(int argc, char * argv[]){
-	AdverseSelection selection("Resources/AMZN.csv");
+	AdverseSelection selection("Resources/AMZN_sample.csv");
+	selection.parseHdf5Source();
 	cout<<"Done Parsing"<<endl;
 	vector<float> pwpVec = selection.calcPartWeightAvg(0.1,'Q');
-	for (int i=0; i<30; ++i){
+	for (int i=0; i<10; ++i){
 		cout<<pwpVec.at(i)<<endl;
 	}
 	selection.computeClassification(true);
 	vector<float> advSelection = selection.calcAdverseSelection(0.1,'Q');
-	for (int i=0; i<30; ++i){
+	for (int i=0; i<10; ++i){
 		cout<<advSelection.at(i)<<endl;
 	}
 }
