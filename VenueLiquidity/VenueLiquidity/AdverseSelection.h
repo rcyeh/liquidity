@@ -19,6 +19,7 @@ private:
 	//map<char, vector<CLASSIFICATION> > exchange_classed_m;
 	ExegyRow* createRow(string line);
 	void parseCsv(string fn);
+	void trimTradeSize(long totalDailyVol);
 	vector<long> getCumVolPerEx(char exchanges[]);
 	vector<long> getTotalSumPerEx(char exchanges[]);
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
