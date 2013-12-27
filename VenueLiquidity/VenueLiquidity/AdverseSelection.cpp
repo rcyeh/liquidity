@@ -122,28 +122,32 @@ void AdverseSelection::parseCsv(string fn){
 			tickData.push_back(row);
 			if (row->type == 'T'){
 				trades.push_back(row);
-				char ex = row->exchange;
-				map<char, vector<ExegyRow*> >::iterator it = exchange_trades_m.find(ex);
-				if (it != exchange_trades_m.end()){
-					it->second.push_back(row);
-				}else{
-					vector<ExegyRow*> vec;
-					vec.push_back(row);
-					exchange_trades_m[ex] = vec;
-				}
 			}
 		}
     }
 	file.close();
+	computeClassification(true); //assign classifications for all tick data
+	trades.clear();
+	for (int i=0; i<tickData.size(); ++i){
+		ExegyRow* row = tickData.at(i);
+		if (row->type == 'T'){
+			trades.push_back(row);
+			char ex = row->exchange;
+			map<char, vector<ExegyRow*> >::iterator it = exchange_trades_m.find(ex);
+			if (it != exchange_trades_m.end()){
+				it->second.push_back(row);
+			}else{
+				vector<ExegyRow*> vec;
+				vec.push_back(row);
+				exchange_trades_m[ex] = vec;
+			}
+		}
+	}
 }
 
 AdverseSelection::AdverseSelection(string source)
 {
 	parseCsv(source);
-	for(map<char,vector<ExegyRow*> >::iterator it = exchange_trades_m.begin(); it != exchange_trades_m.end(); ++it) {
-		vector<CLASSIFICATION> classed;
-		exchange_classed_m[it->first] = classed; 
-	}
 }
 
 CLASSIFICATION AdverseSelection::tickTest(int i){
@@ -169,14 +173,14 @@ void AdverseSelection::computeClassification(bool useLeeReady){
 			float price = tickData.at(i)->price;
 			char ex = tickData.at(i)->exchange;
 			if (price < quote_mid){
-				exchange_classed_m[ex].push_back(SELL);
+				tickData.at(i)->buy_sell = SELL;
 			}else if (price > quote_mid){
-				exchange_classed_m[ex].push_back(BUY);
+				tickData.at(i)->buy_sell = BUY;
 			}else{
 				if (useLeeReady){
-					exchange_classed_m[ex].push_back(tickTest(j));
+					tickData.at(i)->buy_sell = tickTest(j);
 				}else{
-					exchange_classed_m[ex].push_back(NOT_CLASS);
+					tickData.at(i)->buy_sell = NOT_CLASS;
 				}
 			}
 			++j;
@@ -184,9 +188,9 @@ void AdverseSelection::computeClassification(bool useLeeReady){
 	}
 }
 
-vector<long> AdverseSelection::getCumVolPerEx(char exchange){
+vector<long> AdverseSelection::getCumVolPerEx(char exchanges[]){
 	vector<long> cumVols;
-	vector<ExegyRow*> trades = exchange_trades_m[exchange];
+	vector<ExegyRow*> trades = getRowsForExchanges(exchanges);
 	long vol = 0;
 	for (int i=0; i<trades.size(); ++i){
 		vol += trades.at(i)->size;
@@ -195,9 +199,9 @@ vector<long> AdverseSelection::getCumVolPerEx(char exchange){
 	return cumVols;
 }
 
-vector<long> AdverseSelection::getTotalSumPerEx(char exchange){
+vector<long> AdverseSelection::getTotalSumPerEx(char exchanges[]){
 	vector<long> totalSum;
-	vector<ExegyRow*> trades = exchange_trades_m[exchange];
+	vector<ExegyRow*> trades = getRowsForExchanges(exchanges);
 	long s = 0.0;
 	for (int i=0; i<trades.size(); ++i){
 		s += trades.at(i)->size * trades.at(i)->price;
@@ -206,13 +210,28 @@ vector<long> AdverseSelection::getTotalSumPerEx(char exchange){
 	return totalSum;
 }
 
+bool exegyCompare(ExegyRow* first, ExegyRow* second){
+	return (first->exchange_time < second->exchange_time);
+}
+
+// Get all trades that belong to exchanges
+vector<ExegyRow*> AdverseSelection::getRowsForExchanges(char exchanges[]){
+	vector<ExegyRow*> trades;
+	for (int i=0; i<strlen(exchanges); ++i){
+		vector<ExegyRow*> t = exchange_trades_m[exchanges[i]];
+		trades.insert(trades.end(),t.begin(),t.end());
+	}
+	std::sort (trades.begin(), trades.end(), exegyCompare);
+	return trades;
+}
+
 //O(nlogn)
-vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
-	vector<ExegyRow*> trades = exchange_trades_m[exchange];
+vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchanges[]){
+	vector<ExegyRow*> trades = getRowsForExchanges(exchanges);
 	vector<float> partWeightedPrices;
 
-	vector<long> totalSum = getTotalSumPerEx(exchange);
-	vector<long> cumVols = getCumVolPerEx(exchange);
+	vector<long> totalSum = getTotalSumPerEx(exchanges);
+	vector<long> cumVols = getCumVolPerEx(exchanges);
 
 	float pwp = 0.0;
 	for (int i=0; i<trades.size(); ++i){
@@ -238,13 +257,13 @@ vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchange){
 	return partWeightedPrices;
 }
 
-vector<float> AdverseSelection::calcAdverseSelection(float percent, char exchange){
-	vector<float> pwp = calcPartWeightAvg(percent, exchange);
+vector<float> AdverseSelection::calcAdverseSelection(float percent, char exchanges[]){
+	vector<float> pwp = calcPartWeightAvg(percent, exchanges);
 	vector<float> adverseSelection;
-	vector<ExegyRow*> egrs = exchange_trades_m[exchange];
-	vector<CLASSIFICATION> classed = exchange_classed_m[exchange];
+	vector<ExegyRow*> egrs = getRowsForExchanges(exchanges);
+	//vector<CLASSIFICATION> classed = exchange_classed_m[exchange];
 	for (int i=0; i<pwp.size(); ++i){
-		float ads = classed.at(i) * (egrs.at(i)->price - pwp.at(i));
+		float ads = egrs.at(i)->buy_sell * (egrs.at(i)->price - pwp.at(i));
 		adverseSelection.push_back(ads);
 	}
 	return adverseSelection;
@@ -260,12 +279,13 @@ int main(int argc, char * argv[]){
 	AdverseSelection selection("Resources/AMZN_sample.csv");
 	selection.parseHdf5Source();
 	cout<<"Done Parsing"<<endl;
-	vector<float> pwpVec = selection.calcPartWeightAvg(0.1,'Q');
+	char e = 'Q';
+	char *exchanges = &e;
+	vector<float> pwpVec = selection.calcPartWeightAvg(0.1,exchanges);
 	for (int i=0; i<10; ++i){
 		cout<<pwpVec.at(i)<<endl;
 	}
-	selection.computeClassification(true);
-	vector<float> advSelection = selection.calcAdverseSelection(0.1,'Q');
+	vector<float> advSelection = selection.calcAdverseSelection(0.1,exchanges);
 	for (int i=0; i<10; ++i){
 		cout<<advSelection.at(i)<<endl;
 	}

@@ -8,8 +8,6 @@
 
 using namespace std;
 
-enum CLASSIFICATION{BUY=1, SELL=-1, NOT_CLASS=0};
-
 class AdverseSelection
 {
 private: 
@@ -18,14 +16,15 @@ private:
 	vector<ExegyRow*> tickData;
 	vector<ExegyRow*> trades;
 	map<char, vector<ExegyRow*> > exchange_trades_m;
-	map<char, vector<CLASSIFICATION> > exchange_classed_m;
+	//map<char, vector<CLASSIFICATION> > exchange_classed_m;
 	ExegyRow* createRow(string line);
 	void parseCsv(string fn);
-	vector<long> getCumVolPerEx(char exchange);
-	vector<long> getTotalSumPerEx(char exchange);
+	vector<long> getCumVolPerEx(char exchanges[]);
+	vector<long> getTotalSumPerEx(char exchanges[]);
+	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
 public:
-	vector<float> calcPartWeightAvg(float percent, char exchange);
-	vector<float> calcAdverseSelection(float percent, char exchange);
+	vector<float> calcPartWeightAvg(float percent, char exchanges[]);
+	vector<float> calcAdverseSelection(float percent, char exchanges[]);
 	void computeClassification(bool useLeeReady=false);
 	AdverseSelection(string source);
 	void parseHdf5Source();

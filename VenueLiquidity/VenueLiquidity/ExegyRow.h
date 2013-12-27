@@ -2,6 +2,8 @@
 
 using namespace std;
 
+enum CLASSIFICATION{BUY=1, SELL=-1, NOT_CLASS=0};
+
 class ExegyRow
 {
 public:
@@ -25,6 +27,7 @@ public:
 	string symbol; 
 	char type;
 	long volume;
+	CLASSIFICATION buy_sell;
 };
 
 
