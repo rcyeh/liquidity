@@ -253,9 +253,9 @@ vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchanges[
 			if (cumVol >= partVol){ 
 				if (cumVol > partVol){
 					long diff = cumVol - partVol;
-					pwp = (totalSum.at(j) - totalSum.at(i) - (trades.at(j)->price*diff))/(cumVols.at(j) - cumVols.at(i) - diff);
+					pwp = (totalSum.at(j) - totalSum.at(i) - (trades.at(j)->price*diff))/(cumVols.at(j) - cumVols.at(i) - diff + 0.0);
 				}else{
-					pwp = (totalSum.at(j) - totalSum.at(i))/(cumVols.at(j) - cumVols.at(i));
+					pwp = (totalSum.at(j) - totalSum.at(i))/(cumVols.at(j) - cumVols.at(i) + 0.0);
 				}
 				partWeightedPrices.push_back(pwp);
 				break;
@@ -282,22 +282,19 @@ AdverseSelection::~AdverseSelection(){
     tickData.clear();
 }
 
-void writeToFile(vector<float> advSelection, string name){
+void AdverseSelection::writeToFile(vector<float> advSelection, string name){
   ofstream myfile;
-  myfile.open("output.csv",ios_base::app);
-  myfile << "\n";
-  myfile << name<<"\n";
+  myfile.open(name.c_str(),std::ofstream::out | std::ofstream::app);
+  if (myfile.fail()) {
+        cerr << "open failure: " << strerror(errno) << '\n';
+  }
   for (int i=0; i<advSelection.size(); ++i){
 	myfile << advSelection.at(i)<<"\n";
   } 
   myfile.close();
 }
 
-//Test program
-int main(int argc, char * argv[]){
-	AdverseSelection selection("Resources/SP100Hd5f.csv");
-	//selection.parseHdf5Source();
-	cout<<"Done Parsing"<<endl;
+void AdverseSelection::outputAdvSelToFile(){
 	char exchanges[17] = {'A','B','C','D','E','I','J','K','M','N','P','Q','W','X','Y','Z','\0'};
 	char exchanges_noD[16] = {'A','B','C','E','I','J','K','M','N','P','Q','W','X','Y','Z','\0'};
 	vector<float> partRates;
@@ -314,19 +311,38 @@ int main(int argc, char * argv[]){
 		for (int j=0; j<strlen(exchanges); ++j){
 			std::stringstream ss;
 			char c = exchanges[j];
-			char cA[2]; cA[0] = c; cA[1] = '\0';
-			vector<float> advSelection = selection.calcAdverseSelection(partRates.at(i), cA);
-			ss << c <<partRates.at(i)*1000<<".csv"<<endl;	
-			writeToFile(advSelection, ss.str());
+			char cA[2]; 
+			cA[0] = c; 
+			cA[1] = '\0';
+			vector<float> advSelection = calcAdverseSelection(partRates.at(i), cA);
+			ss << c <<partRates.at(i)*1000<<".csv"<<endl;
+			string name = ss.str();
+			cout<<"Write to "<<name<<endl;
+			writeToFile(advSelection, name);
 		}
 		std::stringstream ss;
 		ss << "AllVenues" << partRates.at(i)<<".csv"<<endl;
-		vector<float> advSelectionAll = selection.calcAdverseSelection(partRates.at(i), exchanges);
-		writeToFile(advSelectionAll, ss.str());
+		vector<float> advSelectionAll = calcAdverseSelection(partRates.at(i), exchanges);
+		string name = ss.str();
+		writeToFile(advSelectionAll, name);
 
 		ss.clear();
 		ss << "AllVenuesExD" << partRates.at(i)<<".csv"<<endl;
-		vector<float> advSelectionAllExD = selection.calcAdverseSelection(partRates.at(i), exchanges_noD);
-		writeToFile(advSelectionAllExD, ss.str());
+		vector<float> advSelectionAllExD = calcAdverseSelection(partRates.at(i), exchanges_noD);
+		name = ss.str();
+		writeToFile(advSelectionAllExD, name);
 	}
+}
+
+//Test program
+int main(int argc, char * argv[]){
+	AdverseSelection selection("Resources/AMZN.csv");
+	char exchanges[2] = {'Q','\0'};
+	vector<float> advs = selection.calcPartWeightAvg(0.1, exchanges);
+	for (int i=0; i<10; ++i){
+		cout<<advs.at(i)<<endl;
+	}
+	//selection.parseHdf5Source();
+	cout<<"Done Parsing"<<endl;
+	selection.outputAdvSelToFile();
 }

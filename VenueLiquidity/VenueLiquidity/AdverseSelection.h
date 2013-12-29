@@ -23,12 +23,14 @@ private:
 	vector<long> getCumVolPerEx(char exchanges[]);
 	vector<long> getTotalSumPerEx(char exchanges[]);
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
+	void writeToFile(vector<float> advSelection, string name);
 public:
 	vector<float> calcPartWeightAvg(float percent, char exchanges[]);
 	vector<float> calcAdverseSelection(float percent, char exchanges[]);
 	void computeClassification(bool useLeeReady=false);
 	AdverseSelection(string source);
 	void parseHdf5Source();
+	void outputAdvSelToFile();
 	~AdverseSelection();
 };
 
