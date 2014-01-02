@@ -24,6 +24,8 @@ private:
 	vector<long> getTotalSumPerEx(char exchanges[]);
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
 	void writeToFile(vector<float> advSelection, string name);
+
+	static vector<string> allStocks;
 public:
 	vector<float> calcPartWeightAvg(float percent, char exchanges[]);
 	vector<float> calcAdverseSelection(float percent, char exchanges[]);
@@ -31,6 +33,7 @@ public:
 	AdverseSelection(string source);
 	void parseHdf5Source();
 	void outputAdvSelToFile();
+	friend herr_t file_info(hid_t loc_id, const char *name, void *opdata);
 	~AdverseSelection();
 };
 

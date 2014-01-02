@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdverseSelection.cpp" />
+    <ClCompile Include="ExegyRow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h" />

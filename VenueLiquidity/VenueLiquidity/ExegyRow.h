@@ -4,9 +4,11 @@ using namespace std;
 
 enum CLASSIFICATION{BUY=1, SELL=-1, NOT_CLASS=0};
 
+class ExegyRawData;
 class ExegyRow
 {
 public:
+	ExegyRow(const ExegyRawData& data);
 	int row_num;
 	float ask;
 	char ask_exchange; 
@@ -37,7 +39,7 @@ public:
 	float ask;
 	char ask_exchange[2];
 	long ask_size;
-	long float bid;
+	float bid;
 	char bid_exchange[2];
 	long bid_size;
 	char exchange[2];

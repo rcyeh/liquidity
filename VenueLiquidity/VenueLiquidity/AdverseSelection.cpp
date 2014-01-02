@@ -19,55 +19,63 @@ struct Deleter
     }
 };
 
-//TODO, make this work...
+herr_t file_info(hid_t loc_id, const char *name, void *opdata)
+{
+	if (AdverseSelection::allStocks.size() != 0){
+		return 0;
+	}
+
+    H5G_stat_t statbuf;
+    /*
+     * Get type of the object and display its name and type.
+     * The name of the object is passed to this function by 
+     * the Library. Some magic :-)
+     */
+    H5Gget_objinfo(loc_id, name, false, &statbuf);
+	if (statbuf.type == H5G_DATASET){
+		AdverseSelection::allStocks.push_back(string(name));
+	}
+ };
+
 void AdverseSelection::parseHdf5Source()
 {
-	H5File file2(hdf5Source, H5F_ACC_RDONLY);
+	H5File file(hdf5Source, H5F_ACC_RDONLY);
 	
-	DataSet dataset = file2.openDataSet("/ticks/AMZN");
-	
+	DataSet dataset = file.openDataSet("/ticks/AMZN");
+	H5Giterate(file.getId(), "/ticks", NULL, file_info, NULL);
+
 	size_t size = dataset.getInMemDataSize();
 
 	ExegyRawData *s = (ExegyRawData*) malloc(size);
-	CompType type = dataset.getCompType();
-	for (int i=0; i<24; ++i){
-		//cout<<type.getMemberDataType(i).getTag()<<"|";
-		cout<<type.getMemberDataType(i).getClass()<<endl;
-		//dataset.read(s, type);
-	}
-	/*CompType mtype3( sizeof(ExegyRow) );
-	mtype3.insertMember("ask", 0, PredType::NATIVE_FLOAT);
-	mtype3.insertMember("ask_exchange", sizeof(float), PredType::NATIVE_CHAR);
-	mtype3.insertMember("ask_size", sizeof(char[2]), PredType::NATIVE_LONG);
-	mtype3.insertMember("bid", sizeof(long), PredType::NATIVE_FLOAT);
-	mtype3.insertMember("bid_exchange", sizeof(float), PredType::NATIVE_CHAR);
-	mtype3.insertMember("bid_size", sizeof(char[2]), PredType::NATIVE_LONG);
-	mtype3.insertMember("exchange", sizeof(long), PredType::NATIVE_CHAR);
-	mtype3.insertMember("exchange_time", sizeof(char[2]), PredType::NATIVE_LONG);
-	mtype3.insertMember("instrument_status", sizeof(long), PredType::NATIVE_LONG);
-	mtype3.insertMember("latency", sizeof(unsigned char), PredType::NATIVE_LONG);
-	mtype3.insertMember("line", sizeof(long), PredType::NATIVE_LONG);
-	mtype3.insertMember("market_status", sizeof(unsigned int), PredType::NATIVE_LONG);
-	mtype3.insertMember("prev_close", sizeof(unsigned char), PredType::NATIVE_FLOAT);
-	mtype3.insertMember("price", sizeof(float), PredType::NATIVE_FLOAT);
-	mtype3.insertMember("quals", sizeof(float), PredType::NATIVE_LONG);
-	mtype3.insertMember("refresh", sizeof(unsigned int), PredType::NATIVE_CHAR);
-	mtype3.insertMember("seq_no", sizeof(char[2]), PredType::NATIVE_LONG);
-	mtype3.insertMember("size", sizeof(long), PredType::NATIVE_LONG);
-	mtype3.insertMember("sub_market", sizeof(long), PredType::NATIVE_CHAR);
-	mtype3.insertMember("symbol", sizeof(char[2]), PredType::NATIVE_CHAR);
-	mtype3.insertMember("thru_exempt", sizeof(char[9]), PredType::NATIVE_CHAR);
-	mtype3.insertMember("time", sizeof(unsigned char), PredType::NATIVE_CHAR);
-	mtype3.insertMember("type", sizeof(char[19]), PredType::NATIVE_CHAR);
-	mtype3.insertMember("volume", sizeof(char[2]), PredType::NATIVE_LONG);*/
-	memset(s,0,size);
-	//cout<<sizeof(ExegyRow)<<endl;
-	for (int i=0; i<24; ++i){
-		cout<<sizeof(char[2])<<"|"<<sizeof(long)<<endl;
-		cout<<sizeof(type.getMemberDataType(i).getClass())<<endl;
-		//dataset.read(s, type);
-	}
-	dataset.read(s, type);
+
+	CompType mtype3( sizeof(ExegyRawData) );
+
+	mtype3.insertMember("ask", HOFFSET(ExegyRawData, ask), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("ask_exchange", HOFFSET(ExegyRawData, ask_exchange), StrType(0,2));
+	mtype3.insertMember("ask_size", HOFFSET(ExegyRawData, ask_size), PredType::NATIVE_LONG);
+	mtype3.insertMember("bid", HOFFSET(ExegyRawData, bid), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("bid_exchange", HOFFSET(ExegyRawData, bid_exchange), StrType(0,2));
+	mtype3.insertMember("bid_size", HOFFSET(ExegyRawData, bid_size), PredType::NATIVE_LONG);
+	mtype3.insertMember("exchange", HOFFSET(ExegyRawData, exchange), StrType(0,2));
+	mtype3.insertMember("exchange_time", HOFFSET(ExegyRawData, exchange_time), PredType::NATIVE_LONG);
+	mtype3.insertMember("instrument_status", HOFFSET(ExegyRawData, instrument_status), PredType::NATIVE_CHAR);
+	mtype3.insertMember("latency", HOFFSET(ExegyRawData, latency), PredType::NATIVE_LONG);
+	mtype3.insertMember("line", HOFFSET(ExegyRawData, line), PredType::NATIVE_LONG);
+	mtype3.insertMember("market_status", HOFFSET(ExegyRawData, market_status), PredType::NATIVE_LONG);
+	mtype3.insertMember("prev_close", HOFFSET(ExegyRawData, prev_close), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("price", HOFFSET(ExegyRawData, price), PredType::NATIVE_FLOAT);
+	mtype3.insertMember("quals", HOFFSET(ExegyRawData, quals), PredType::NATIVE_LONG);
+	mtype3.insertMember("refresh", HOFFSET(ExegyRawData, refresh), StrType(0,2));
+	mtype3.insertMember("seq_no", HOFFSET(ExegyRawData, seq_no), PredType::NATIVE_LONG);
+	mtype3.insertMember("size", HOFFSET(ExegyRawData, size), PredType::NATIVE_LONG);
+	mtype3.insertMember("sub_market", HOFFSET(ExegyRawData, sub_market), StrType(0,2));
+	mtype3.insertMember("symbol", HOFFSET(ExegyRawData, symbol), StrType(0,9));
+	hsize_t    array_dim[] = {1};
+	mtype3.insertMember("thru_exempt", HOFFSET(ExegyRawData, thru_exempt), H5Tarray_create(H5T_NATIVE_CHAR, 1, array_dim));
+	mtype3.insertMember("time", HOFFSET(ExegyRawData, time), StrType(0,19));
+	mtype3.insertMember("type", HOFFSET(ExegyRawData, type), StrType(0,2));
+	mtype3.insertMember("volume", HOFFSET(ExegyRawData, volume), PredType::NATIVE_LONG);
+	dataset.read(s, mtype3);
 	ExegyRawData r = s[0];
 }
 
@@ -337,6 +345,7 @@ void AdverseSelection::outputAdvSelToFile(){
 //Test program
 int main(int argc, char * argv[]){
 	AdverseSelection selection("Resources/AMZN.csv");
+	selection.parseHdf5Source();
 	char exchanges[2] = {'Q','\0'};
 	vector<float> advs = selection.calcPartWeightAvg(0.1, exchanges);
 	for (int i=0; i<10; ++i){
