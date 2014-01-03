@@ -12,6 +12,7 @@ class AdverseSelection
 {
 private: 
 	H5std_string hdf5Source;
+	string ticker;
 	CLASSIFICATION tickTest(int i);
 	vector<ExegyRow*> tickData;
 	vector<ExegyRow*> trades;
@@ -24,13 +25,13 @@ private:
 	vector<long> getTotalSumPerEx(char exchanges[]);
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
 	void writeToFile(vector<float> advSelection, string name);
-
-	static vector<string> allStocks;
 public:
+	static vector<string> allStocks;
 	vector<float> calcPartWeightAvg(float percent, char exchanges[]);
 	vector<float> calcAdverseSelection(float percent, char exchanges[]);
 	void computeClassification(bool useLeeReady=false);
-	AdverseSelection(string source);
+	AdverseSelection(string csvSource);
+	AdverseSelection(string hdf5Source, string ticker);
 	void parseHdf5Source();
 	void outputAdvSelToFile();
 	friend herr_t file_info(hid_t loc_id, const char *name, void *opdata);

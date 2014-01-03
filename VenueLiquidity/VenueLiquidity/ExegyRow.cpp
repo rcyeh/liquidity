@@ -28,6 +28,3 @@ ExegyRow::ExegyRow(const ExegyRawData& data)
 }
 
 
-ExegyRow::~ExegyRow(void)
-{
-}

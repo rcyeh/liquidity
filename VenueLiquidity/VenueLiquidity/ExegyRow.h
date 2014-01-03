@@ -10,7 +10,7 @@ class ExegyRow
 public:
 	ExegyRow();
 	ExegyRow(const ExegyRawData& data);
-	int row_num;
+	//int row_num;
 	float ask;
 	char ask_exchange; 
 	long ask_size;

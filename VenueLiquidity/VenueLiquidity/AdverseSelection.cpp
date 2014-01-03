@@ -19,6 +19,7 @@ struct Deleter
     }
 };
 
+vector<string> AdverseSelection::allStocks;
 herr_t file_info(hid_t loc_id, const char *name, void *opdata)
 {
 	if (AdverseSelection::allStocks.size() != 0){
@@ -35,18 +36,21 @@ herr_t file_info(hid_t loc_id, const char *name, void *opdata)
 	if (statbuf.type == H5G_DATASET){
 		AdverseSelection::allStocks.push_back(string(name));
 	}
+	return 0;
  };
 
 void AdverseSelection::parseHdf5Source()
 {
-	hdf5Source = H5std_string("Resources/ticks.20130423.h5");
 	H5File file(hdf5Source, H5F_ACC_RDONLY);
-	
-	
+		
 	H5Giterate(file.getId(), "/ticks", NULL, file_info, NULL);
 
-	DataSet dataset = file.openDataSet("/ticks/AMZN");
+	DataSet dataset = file.openDataSet("/ticks/" + ticker);
+	
 	size_t size = dataset.getInMemDataSize();
+
+	//int len = size / sizeof(dataset.getCompType());
+	int len = size / 144;
 
 	ExegyRawData *s = (ExegyRawData*) malloc(size);
 
@@ -78,7 +82,32 @@ void AdverseSelection::parseHdf5Source()
 	mtype3.insertMember("type", HOFFSET(ExegyRawData, type), StrType(0,2));
 	mtype3.insertMember("volume", HOFFSET(ExegyRawData, volume), PredType::NATIVE_LONG);
 	dataset.read(s, mtype3);
-	ExegyRawData r = s[0];
+	for (int i=0;i<len; ++i){
+		ExegyRow *row = new ExegyRow(s[i]);
+		tickData.push_back(row);
+		if (row->type == 'T'){
+			trades.push_back(row);
+		}
+	}
+	computeClassification(true); //assign classifications for all tick data
+	cout<<"Total daily volume: "<<trades.at(trades.size()-1)->volume; 
+	trimTradeSize(trades.at(trades.size()-1)->volume);
+	trades.clear();
+	for (int i=0; i<tickData.size(); ++i){
+		ExegyRow* row = tickData.at(i);
+		if (row->type == 'T'){
+			trades.push_back(row);
+			char ex = row->exchange;
+			map<char, vector<ExegyRow*> >::iterator it = exchange_trades_m.find(ex);
+			if (it != exchange_trades_m.end()){
+				it->second.push_back(row);
+			}else{
+				vector<ExegyRow*> vec;
+				vec.push_back(row);
+				exchange_trades_m[ex] = vec;
+			}
+		}
+	}
 }
 
 bool isValidQual(int qual){
@@ -95,7 +124,7 @@ ExegyRow* AdverseSelection::createRow(string line){
     for(int i=0; i<25; ++i){
 		getline(myline, csvItem, ',');
 		switch(i){
-			case 0: row->row_num = atoi(&csvItem.at(1)); break;
+			//case 0: row->row_num = atoi(&csvItem.at(1)); break;
 			case 1: row->ask = atof(csvItem.c_str()); break;
 			case 3: row->ask_size = atoi(csvItem.c_str()); break;
 			case 4: row->bid = atof(csvItem.c_str()); break;
@@ -159,6 +188,12 @@ void AdverseSelection::parseCsv(string fn){
 AdverseSelection::AdverseSelection(string source)
 {
 	parseCsv(source);
+}
+
+AdverseSelection::AdverseSelection(string hdf5, string t){
+	hdf5Source = H5std_string(hdf5);
+	ticker = t;
+	parseHdf5Source();
 }
 
 CLASSIFICATION AdverseSelection::tickTest(int i){
@@ -345,7 +380,8 @@ void AdverseSelection::outputAdvSelToFile(){
 
 //Test program
 int main(int argc, char * argv[]){
-	AdverseSelection selection("Resources/AMZN.csv");
+	//AdverseSelection selection("Resources/AMZN.csv");
+	AdverseSelection selection("Resources/ticks.20130423.h5", "AMZN");
 	selection.parseHdf5Source();
 	char exchanges[2] = {'Q','\0'};
 	vector<float> advs = selection.calcPartWeightAvg(0.1, exchanges);
