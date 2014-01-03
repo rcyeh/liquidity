@@ -8,6 +8,7 @@ class ExegyRawData;
 class ExegyRow
 {
 public:
+	ExegyRow();
 	ExegyRow(const ExegyRawData& data);
 	int row_num;
 	float ask;

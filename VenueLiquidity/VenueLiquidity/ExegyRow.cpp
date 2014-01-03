@@ -1,5 +1,8 @@
 #include "ExegyRow.h"
 
+ExegyRow::ExegyRow()
+{
+}
 
 ExegyRow::ExegyRow(const ExegyRawData& data)
 {

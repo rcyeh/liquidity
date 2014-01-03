@@ -39,11 +39,13 @@ herr_t file_info(hid_t loc_id, const char *name, void *opdata)
 
 void AdverseSelection::parseHdf5Source()
 {
+	hdf5Source = H5std_string("Resources/ticks.20130423.h5");
 	H5File file(hdf5Source, H5F_ACC_RDONLY);
 	
-	DataSet dataset = file.openDataSet("/ticks/AMZN");
+	
 	H5Giterate(file.getId(), "/ticks", NULL, file_info, NULL);
 
+	DataSet dataset = file.openDataSet("/ticks/AMZN");
 	size_t size = dataset.getInMemDataSize();
 
 	ExegyRawData *s = (ExegyRawData*) malloc(size);
@@ -120,7 +122,6 @@ ExegyRow* AdverseSelection::createRow(string line){
 }
 
 void AdverseSelection::parseCsv(string fn){
-	hdf5Source = H5std_string("Resources/ticks.20130423.h5");
 	ifstream file;
 	file.open(fn,ios::in);
 	string line;
