@@ -25,10 +25,14 @@ private:
 	vector<long> getTotalSumPerEx(char exchanges[]);
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
 	void writeToFile(vector<float> advSelection, string name);
+	void writeToFile(float advSelection, string name);
+	bool conProcess;
 public:
 	static vector<string> allStocks;
+	static void populateStockLists(string hdf5);
 	vector<float> calcPartWeightAvg(float percent, char exchanges[]);
 	vector<float> calcAdverseSelection(float percent, char exchanges[]);
+	float calcWeightedAdverseSelection(float percent, char exchanges[]);
 	void computeClassification(bool useLeeReady=false);
 	AdverseSelection(string csvSource);
 	AdverseSelection(string hdf5Source, string ticker);
