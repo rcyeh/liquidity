@@ -29,6 +29,9 @@
     <ClCompile Include="ExegyRow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Runner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h">

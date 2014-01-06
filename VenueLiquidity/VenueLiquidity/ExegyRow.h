@@ -10,7 +10,9 @@ class ExegyRow
 public:
 	ExegyRow();
 	ExegyRow(const ExegyRawData& data);
+	string getData();
 	//int row_num;
+	float adv_selection;
 	float ask;
 	char ask_exchange; 
 	long ask_size;

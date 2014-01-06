@@ -32,6 +32,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -126,6 +127,7 @@
   <ItemGroup>
     <ClCompile Include="AdverseSelection.cpp" />
     <ClCompile Include="ExegyRow.cpp" />
+    <ClCompile Include="Runner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h" />

@@ -4,6 +4,11 @@ ExegyRow::ExegyRow()
 {
 }
 
+string ExegyRow::getData(){
+	//TODO
+	return "";
+}
+
 ExegyRow::ExegyRow(const ExegyRawData& data)
 {
 	ask = data.ask;
