@@ -15,7 +15,8 @@ int main(int argc, char * argv[]){
 	//cout<<AdverseSelection::allStocks.at(15)<<endl;
 	for (int i=10; i<AdverseSelection::allStocks.size(); ++i){
 		cout<<i<<endl;
-		AdverseSelection selection(file, AdverseSelection::allStocks.at(i));
+		//AdverseSelection selection(file, AdverseSelection::allStocks.at(i));
+		AdverseSelection selection(file, "ABW_hyphen_B");
 		selection.outputAdvSelToFile();
 	}
 }

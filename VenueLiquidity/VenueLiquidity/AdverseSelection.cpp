@@ -11,7 +11,7 @@
 using namespace std;
 using namespace H5;
 
-#define DEFAULT_SPREAD 99999.9
+#define DEFAULT_SPREAD 999.0
 
 struct Deleter
 {
@@ -258,6 +258,9 @@ vector<float> AdverseSelection::calcPartWeightAvg(float percent, char exchanges[
 
 	float pwp = 0.0;
 	for (int i=0; i<trades.size(); ++i){
+		if (trades.at(i)->size == 0){
+			continue;
+		}
 		long partVol = trades.at(i)->size/percent; // Calculate next X volumes to use	
 
 		long nV = partVol + cumVols.at(i);
@@ -312,16 +315,16 @@ float AdverseSelection::calcWeightedAdverseSelection(float percent, char exchang
 		vector<float> pwp = calcPartWeightAvg(percent, exchanges);
 		if (pwp.size() > 0){
 			advSelection = 0.0;
-		}
-		vector<ExegyRow*> egrs = getRowsForExchanges(exchanges);
-		vector<long> vols = getCumVolPerEx(exchanges); 
-		long totalVol = accumulate(vols.begin(),vols.end(),0);
-		for (int i=0; i<pwp.size(); ++i){
-			float avgPrice = 1.0;
-			if (priceWeighted){
-				avgPrice = (egrs.at(i)->price + pwp.at(i))/2;
-			}
-			advSelection += (egrs.at(i)->size + 0.0) / totalVol * (egrs.at(i)->buy_sell * (egrs.at(i)->price - pwp.at(i))) / avgPrice;
+			vector<ExegyRow*> egrs = getRowsForExchanges(exchanges);
+			vector<long> vols = getCumVolPerEx(exchanges); 
+			long totalVol = accumulate(vols.begin(),vols.end(),0);
+			for (int i=0; i<pwp.size(); ++i){
+				float avgPrice = 1.0;
+				if (priceWeighted){
+					avgPrice = (egrs.at(i)->price + pwp.at(i))/2;
+				}
+				advSelection += (egrs.at(i)->size + 0.0) / totalVol * (egrs.at(i)->buy_sell * (egrs.at(i)->price - pwp.at(i))) / avgPrice;
+			}			
 		}
 	}
 	return advSelection;
@@ -333,15 +336,17 @@ AdverseSelection::~AdverseSelection(){
 }
 
 void AdverseSelection::writeToFile(float advSelection, string name){
-  ofstream myfile;
-  cout<<"Outputting to file: "<<name<<endl;
-  if (myfile.is_open()){ myfile.close(); }
-  myfile.open(name.c_str(),std::ofstream::out | std::ofstream::app);
-  if (myfile.fail()) {
-        cerr << "open failure: " << strerror(errno) << '\n';
+  if (advSelection != DEFAULT_SPREAD){
+	  ofstream myfile;
+	  cout<<"Outputting to file: "<<name<<endl;
+	  if (myfile.is_open()){ myfile.close(); }
+	  myfile.open(name.c_str(),std::ofstream::out | std::ofstream::app);
+	  if (myfile.fail()) {
+			cerr << "open failure: " << strerror(errno) << '\n';
+	  }
+	  myfile << ticker << "," << advSelection<<"\n";
+	  myfile.close();
   }
-  myfile << ticker << "," << advSelection<<"\n";
-  myfile.close();
 }
 
 void AdverseSelection::writeToFile(vector<float> advSelection, string name){
