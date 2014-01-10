@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -10,7 +11,7 @@ class ExegyRow
 public:
 	ExegyRow();
 	ExegyRow(const ExegyRawData& data);
-	string getData();
+	string getTradeData();
 	//int row_num;
 	float adv_selection;
 	float ask;
@@ -33,6 +34,7 @@ public:
 	char type;
 	long volume;
 	CLASSIFICATION buy_sell;
+	vector<float> pwpPrices;
 };
 
 

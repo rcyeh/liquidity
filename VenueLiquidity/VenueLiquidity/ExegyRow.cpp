@@ -1,12 +1,18 @@
 #include "ExegyRow.h"
+#include <sstream>
 
 ExegyRow::ExegyRow()
 {
 }
 
-string ExegyRow::getData(){
-	//TODO
-	return "";
+string ExegyRow::getTradeData(){
+	stringstream ss;
+	ss <<buy_sell<<","<<size<<","<<price<<","<<exchange;
+	if (pwpPrices.size() > 0) { ss << ","; }
+	for (int i=0; i<pwpPrices.size(); ++i){
+		ss << pwpPrices.at(i) << ",";
+	}
+	return ss.str();
 }
 
 ExegyRow::ExegyRow(const ExegyRawData& data)
