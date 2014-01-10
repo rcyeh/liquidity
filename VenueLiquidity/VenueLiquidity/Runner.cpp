@@ -80,7 +80,7 @@ int main(int argc, char * argv[]){
 		begin = atoi(argv[1]);
 		end = atoi(argv[2]);
 	}
-	for (int i=0; i<AdverseSelection::allStocks.size(); ++i){
+	for (int i=begin; i<end; ++i){
 		cout<<i<<endl;
 		AdverseSelection selection(file, AdverseSelection::allStocks.at(i));
 		stringstream ss;
