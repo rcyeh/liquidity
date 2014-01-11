@@ -5,8 +5,7 @@
 #include <vector>
 #include <map>
 #include "ExegyRow.h"
-//#include <boost/thread/mutex.hpp>
-//#include <boost/thread/lock_guard.hpp>
+#include "Ticker.h"
 
 using namespace std;
 
@@ -27,10 +26,9 @@ private:
 	vector<ExegyRow*> getRowsForExchanges(char exchanges[]);
 	void writeToFile(vector<ExegyRow*> rows, string name);
 	void writeToFile(float advSelection, string name);
-	void writeMark(int mark, string name);
+	void writeToFile(Ticker ticker, string name);
 	map<char, bool> exHasTrades;
 	bool hasTrades(char exchanges[]);
-	int mark;
 	int threadIdentifier;
 public:
 	static vector<string> allStocks;
@@ -41,7 +39,7 @@ public:
 	float calcWeightedAdverseSelection(float percent, char exchanges[], bool priceWeighted=true);
 	void computeClassification(bool useLeeReady=false);
 	AdverseSelection(string hdf5Source, string ticker);
-	AdverseSelection(string hdf5Source, string ticker, int iTh, int tI);
+	AdverseSelection(string hdf5Source, string ticker, int tI);
 	void parseHdf5Source();
 	void outputAdvSelToFile(bool outputAvg=true, string outputFile = string("AllTradesInfo.csv"));
 	friend herr_t file_info(hid_t loc_id, const char *name, void *opdata);

@@ -1,5 +1,4 @@
 #include "AdverseSelection.h"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -12,6 +11,7 @@ using namespace std;
 using namespace H5;
 
 #define DEFAULT_SPREAD 999.0
+#define NUM_PARTS 6
 
 struct Deleter
 {
@@ -172,9 +172,8 @@ AdverseSelection::AdverseSelection(string hdf5, string t){
 	cout<<"Done Parsing"<<endl;
 }
 
-AdverseSelection::AdverseSelection(string hdf5, string t, int iTh, int tI){
+AdverseSelection::AdverseSelection(string hdf5, string t, int tI){
 	cout<<"Processing ticker: "<<t<<endl;
-	mark = iTh;
 	threadIdentifier = tI;
 	hdf5Source = H5std_string(hdf5);
 	ticker = t;
@@ -358,15 +357,18 @@ AdverseSelection::~AdverseSelection(){
     tickData.clear();
 }
 
-void AdverseSelection::writeMark(int mark, string name){
-	ofstream myfile;
-	if (myfile.is_open()){ myfile.close(); }
-	myfile.open(name.c_str(),std::ofstream::out | std::ofstream::app);
-	if (myfile.fail()) {
-		cerr << "open failure: " << strerror(errno) << '\n';
+void AdverseSelection::writeToFile(Ticker ticker, string name){
+	if (ticker.pwps.size() == NUM_PARTS){
+		 ofstream myfile;
+		 cout<<"Outputting to file: "<<name<<endl;
+		 if (myfile.is_open()){ myfile.close(); }
+		 myfile.open(name.c_str(),std::ofstream::out | std::ofstream::app);
+		 if (myfile.fail()) {
+			cerr << "open failure: " << strerror(errno) << '\n';
+		 }
+		 myfile << ticker.getData() <<"\n";
+		 myfile.close();
 	}
-	myfile << mark <<"\n";
-	myfile.close();
 }
 
 void AdverseSelection::writeToFile(float advSelection, string name){
@@ -408,27 +410,29 @@ void AdverseSelection::outputAdvSelToFile(bool outputAvg, string outputFile){
 	partRates.push_back(0.003);
 	partRates.push_back(0.001);
 	
-	for (int i=0; i<partRates.size(); ++i){
-		for (int j=0; j<strlen(exchanges); ++j){
+	for (int j=0; j<strlen(exchanges); ++j){
+		char c = exchanges[j];
+		char cA[2]; 
+		cA[0] = c; 
+		cA[1] = '\0';
+		Ticker ticker(ticker, c);
+		for (int i=0; i<partRates.size(); ++i){	
 			std::stringstream ss;
-			char c = exchanges[j];
-			char cA[2]; 
-			cA[0] = c; 
-			cA[1] = '\0';
-		
 			if (hasTrades(cA)){
+				ticker.price = trades.at(trades.size()-1)->price;
 				// Depending on if we want all raw data or just one weighted adverse selection per stock
 				if (outputAvg){
 					//ss << c <<partRates.at(i)*1000<<".csv";
-					ss << c <<partRates.at(i)*1000<<outputFile;
+					ss << "Output_" << outputFile;
 					string fileName = ss.str();
 					float advSelection = calcWeightedAdverseSelection(partRates.at(i), cA);
-					writeToFile(advSelection, fileName);
-					
-					/*stringstream s2;
-					s2 << threadIdentifier <<".csv";
-					writeMark(mark, s2.str()); */
-
+					ticker.pwps.push_back(advSelection);
+					if (advSelection == DEFAULT_SPREAD){
+						break;
+					}
+					if (i == partRates.size() - 1){
+						writeToFile(ticker, fileName);
+					}
 				}else{
 					vector<ExegyRow*> allTrades = calcAdverseSelection(partRates.at(i), cA);
 					if (i == partRates.size() - 1){
