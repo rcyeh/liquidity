@@ -34,7 +34,7 @@ public:
 	char type;
 	long volume;
 	CLASSIFICATION buy_sell;
-	vector<float> pwpPrices;
+	vector<float> advSPrices;
 };
 
 

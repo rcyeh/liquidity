@@ -8,9 +8,9 @@ ExegyRow::ExegyRow()
 string ExegyRow::getTradeData(){
 	stringstream ss;
 	ss <<buy_sell<<","<<size<<","<<price<<","<<exchange;
-	if (pwpPrices.size() > 0) { ss << ","; }
-	for (int i=0; i<pwpPrices.size(); ++i){
-		ss << pwpPrices.at(i) << ",";
+	if (advSPrices.size() > 0) { ss << ","; }
+	for (int i=0; i<advSPrices.size(); ++i){
+		ss << advSPrices.at(i) << ",";
 	}
 	return ss.str();
 }

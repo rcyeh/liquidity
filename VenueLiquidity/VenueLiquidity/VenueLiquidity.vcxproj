@@ -66,13 +66,13 @@
     <IncludePath>C:\Program Files\HDF_Group\HDF5\1.8.12\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\boost_1_55_0;C:\Program Files\HDF_Group\HDF5\1.8.12\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files\HDF_Group\HDF5\1.8.12\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>C:\Program Files\HDF_Group\HDF5\1.8.12\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\boost_1_55_0\lib64-msvc-10.0;C:\Program Files\HDF_Group\HDF5\1.8.12\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\HDF_Group\HDF5\1.8.12\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -92,8 +92,10 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>szip.lib;zlib.lib;hdf5.lib;hdf5_cpp.lib;libboost_thread-vc100-mt-gd-1_55.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>szip.lib;zlib.lib;hdf5.lib;hdf5_cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdverseSelection.cpp" />
+    <ClCompile Include="ASUnitTests.cpp" />
     <ClCompile Include="ExegyRow.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Ticker.cpp" />

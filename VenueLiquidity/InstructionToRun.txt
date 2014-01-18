@@ -1,0 +1,10 @@
+For calculating weighted adverse selection (one per stock, weight = trade size (i) / sum(vol(i)), where (i) subset of all trades whose pwp prices are defined (it can be undefined, if trailing volumes are insufficient):
+
+Open Starter.bat in notepad:
+
+1) Change .h5 location
+2) Change the number of stocks dedicated to the last worker thread
+
+Run Starter.bat (It takes 15 minutes on my machine)
+
+Once finished, run MergeFiles.bat. It will produce a MergedOutput.csv file, containing all the relevent info. 
