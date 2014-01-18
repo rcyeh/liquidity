@@ -1,5 +1,5 @@
-set directory="./x64/Debug"
-set h5File="./VenueLiquidity/Resources/ticks.20140109.h5"
+set directory="C:/VenueLiquidity/trunk/VenueLiquidity/x64/Debug"
+set h5File="C:/VenueLiquidity/trunk/VenueLiquidity/VenueLiquidity/Resources/ticks.20140109.h5"
 cd %directory% 
 
 start %directory% VenueLiquidity.exe 0 1000 %h5File%

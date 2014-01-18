@@ -71,11 +71,29 @@ CompType getCompType(){
 	return mtype3;
 }
 
-void AdverseSelection::parseHdf5Source(bool trimForTest)
-{
-	//AdverseSelection::mtx.lock();
-	//cout<<"Locked"<<endl;
+float getNumFromStr(const char* str, int begin, int increment){
+	stringstream ss;
+	for (int i=begin; i<begin+increment; ++i){
+		ss<<str[i];
+	}
+	return atoi(ss.str().c_str());
+}
 
+bool AdverseSelection::isValidExeyRow(const ExegyRawData& row){
+	int hour = getNumFromStr(row.time, 0, 2) - 5;
+	int minutes = getNumFromStr(row.time, 3, 2);
+
+	if ((hour < 9) || (hour == 9 && minutes < 30) || (hour > 17)) {
+		return false;
+	}
+	else if((row.quals==32 || row.quals==102)){
+		return false;
+	}
+	return true;
+}
+
+void AdverseSelection::parseHdf5Source(bool testing)
+{
 	H5File file(hdf5Source, H5F_ACC_RDONLY);
 	DataSet dataset = file.openDataSet("/ticks/" + ticker);
 	
@@ -83,27 +101,26 @@ void AdverseSelection::parseHdf5Source(bool trimForTest)
 
 	//int len = size / sizeof(dataset.getCompType());
 	int len = size / 144;
-	if (trimForTest){
+	if (testing){
 		len = 100; //take only 100 entries for testing purposes
 	}
 	ExegyRawData *s = (ExegyRawData*) malloc(size);
 	dataset.read(s, getCompType());
 	file.close();
 	
-	//AdverseSelection::mtx.unlock();
-	//cout<<"Unlocked"<<endl;
-
 	for (int i=0;i<len; ++i){
-		ExegyRow *row = new ExegyRow(s[i]);
-		tickData.push_back(row);
-		if (row->type == 'T'){
-			trades.push_back(row);
+		if (isValidExeyRow(s[i]) || testing){
+			ExegyRow *row = new ExegyRow(s[i]);
+			tickData.push_back(row);
+			if (row->type == 'T'){
+				trades.push_back(row);
+			}
 		}
 	}
 	computeClassification(true); //assign classifications for all tick data
 	if (trades.size() >= 1){
 		cout<<"Total daily volume: "<<trades.at(trades.size()-1)->volume<<endl; 
-		if (!trimForTest){ //When testing, we'll test this separately
+		if (!testing){ //When testing, we'll test this separately
 			trimTradeSize(trades.at(trades.size()-1)->volume);
 		}
 		trades.clear();
@@ -126,58 +143,9 @@ void AdverseSelection::parseHdf5Source(bool trimForTest)
 	}
 }
 
-bool isValidQual(int qual){
-	if(qual!=32 && qual!=59){
-		return true;	
-	}
-	return false;
-}
-
-ExegyRow* AdverseSelection::createRow(string line){
-	ExegyRow* row = new ExegyRow;
-	string csvItem;
-	istringstream myline(line);
-    for(int i=0; i<25; ++i){
-		getline(myline, csvItem, ',');
-		switch(i){
-			//case 0: row->row_num = atoi(&csvItem.at(1)); break;
-			case 1: row->ask = atof(csvItem.c_str()); break;
-			case 3: row->ask_size = atoi(csvItem.c_str()); break;
-			case 4: row->bid = atof(csvItem.c_str()); break;
-			case 6: row->bid_size = atoi(csvItem.c_str()); break;
-			case 7: row->exchange = csvItem.at(1); break;
-			case 8: 
-				row->exchange_time = stoll(csvItem.c_str()); 
-				if (row->exchange_time < 1366718400000 + 9000000 ||
-					row->exchange_time > 1366718400000 + 32400000 ){ //outside market hours
-					return NULL;
-				}
-				break;
-			case 14: row->price = atof(csvItem.c_str()); break;
-			case 15: row->quals = atoi(csvItem.c_str()); 
-				if(!isValidQual(row->quals)){return NULL;}
-				break;
-			case 18: row->size = atoi(csvItem.c_str()); break;
-			case 20: row->symbol = csvItem; break;
-			case 23: row->type = csvItem.at(1); break;
-			case 24: row->volume = atoi(csvItem.c_str()); break;
-		}
-	}
-	return row;
-}
-
 AdverseSelection::AdverseSelection(string hdf5, string t, bool trimForTest){
 	cout<<"Processing ticker: "<<t<<endl;
 	threadIdentifier = 1;
-	hdf5Source = H5std_string(hdf5);
-	ticker = t;
-	parseHdf5Source(trimForTest);
-	cout<<"Done Parsing"<<endl;
-}
-
-AdverseSelection::AdverseSelection(string hdf5, string t, int tI, bool trimForTest){
-	cout<<"Processing ticker: "<<t<<endl;
-	threadIdentifier = tI;
 	hdf5Source = H5std_string(hdf5);
 	ticker = t;
 	parseHdf5Source(trimForTest);
