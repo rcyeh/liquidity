@@ -4,6 +4,7 @@
 using namespace std;
 
 enum CLASSIFICATION{BUY=1, SELL=-1, NOT_CLASS=0};
+enum TRADE_TYPE{MKT, LMT};
 
 class ExegyRawData;
 class ExegyRow
@@ -21,7 +22,7 @@ public:
 	char bid_exchange;
 	long bid_size;
 	char exchange; 
-	long long exchange_time;
+	string time;
 	unsigned char instrument_status;
 	long latency; 
 	unsigned int line;
@@ -34,6 +35,7 @@ public:
 	char type;
 	long volume;
 	CLASSIFICATION buy_sell;
+	TRADE_TYPE t_type;
 	vector<float> advSPrices;
 };
 

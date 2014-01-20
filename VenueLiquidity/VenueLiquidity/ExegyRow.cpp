@@ -24,7 +24,7 @@ ExegyRow::ExegyRow(const ExegyRawData& data)
 	bid_exchange = data.bid_exchange[0];
 	bid_size = data.bid_size;
 	exchange = data.exchange[0]; 
-	exchange_time = data.exchange_time;
+	time = data.time;
 	instrument_status = data.instrument_status;
 	latency = data.latency; 
 	line = data.line;

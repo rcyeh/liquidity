@@ -118,7 +118,7 @@ int main(int argc, char * argv[]){
 			AdverseSelection selection(file, AdverseSelection::allStocks.at(i));
 			stringstream ss;
 			ss<<argv[1]<<".csv";
-			selection.outputAdvSelToFile(true, ss.str());
+			selection.outputAdvSelToFile(true, ss.str(), true);
 		}
 	}
 }
