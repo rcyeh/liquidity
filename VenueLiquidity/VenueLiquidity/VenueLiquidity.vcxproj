@@ -88,10 +88,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>szip.lib;zlib.lib;hdf5.lib;hdf5_cpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -126,12 +130,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdverseSelection.cpp" />
+    <ClCompile Include="ASUnitTests.cpp" />
     <ClCompile Include="ExegyRow.cpp" />
     <ClCompile Include="Runner.cpp" />
+    <ClCompile Include="Ticker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h" />
     <ClInclude Include="ExegyRow.h" />
+    <ClInclude Include="Ticker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

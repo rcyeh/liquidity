@@ -1,12 +1,18 @@
 #include "ExegyRow.h"
+#include <sstream>
 
 ExegyRow::ExegyRow()
 {
 }
 
-string ExegyRow::getData(){
-	//TODO
-	return "";
+string ExegyRow::getTradeData(){
+	stringstream ss;
+	ss <<buy_sell<<","<<size<<","<<price<<","<<exchange;
+	if (advSPrices.size() > 0) { ss << ","; }
+	for (int i=0; i<advSPrices.size(); ++i){
+		ss << advSPrices.at(i) << ",";
+	}
+	return ss.str();
 }
 
 ExegyRow::ExegyRow(const ExegyRawData& data)
@@ -18,7 +24,7 @@ ExegyRow::ExegyRow(const ExegyRawData& data)
 	bid_exchange = data.bid_exchange[0];
 	bid_size = data.bid_size;
 	exchange = data.exchange[0]; 
-	exchange_time = data.exchange_time;
+	time = data.time;
 	instrument_status = data.instrument_status;
 	latency = data.latency; 
 	line = data.line;
