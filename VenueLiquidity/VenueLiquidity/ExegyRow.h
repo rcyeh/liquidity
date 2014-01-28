@@ -35,8 +35,6 @@ public:
 	char type;
 	long volume;
 	CLASSIFICATION buy_sell;
-	TRADE_TYPE t_type;
-	vector<float> advSPrices;
 };
 
 
@@ -67,4 +65,16 @@ public:
 	char time[19];
 	char type[2];
 	long volume;
+};
+
+struct EndPWAPBookmark {
+  long finalShareVolume;
+  size_t trade_idx;
+  char exchange;
+  std::string ticker;
+  double participationRate;
+  double advSelDollarBars;
+
+  static std::vector <EndPWAPBookmark> allBookmarks;
+  static std::vector < std::pair< long, double > > cumulativeVolume; // and price * volume, indexed at the start of each trade
 };

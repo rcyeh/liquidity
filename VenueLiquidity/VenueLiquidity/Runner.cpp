@@ -8,52 +8,10 @@
 #include <stdlib.h>     
 #include <stdio.h>
 #include <assert.h>
+#include "ASParser.h"
 
-bool withinCloseRange(float a, float b){
-	if (abs(a-b) / b < 0.03){
-		return true;
-	}return false;
-}
-
-void advSelectionTest(){
-	std::string file = "Resources/ticks.20130423.h5";
-	AdverseSelection::populateStockLists(file);
-	AdverseSelection advSel(file, "AAPL", true);
-	assert(advSel.trades.size(), 37);
-	assert(advSel.trades.size(), 37);
-	vector<CLASSIFICATION> classifications;
-	for (int i=0; i<advSel.trades.size(); ++i){
-		classifications.push_back(advSel.trades.at(i)->buy_sell);
-	}
-	int handCalced[37] = {1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,1,1,1,-1,1,1,1,1,1,1,1,1};
-	for (int j=0; j<37; ++j){
-		assert(handCalced[j] == classifications[j]);
-	}
-
-	char exchanges[2] = {'P','\0'};
-	vector<ExegyRow*> advSels = advSel.calcAdverseSelection(0.3f, exchanges);
-	float s = advSels.at(0)->advSPrices[0];
-	assert(withinCloseRange(s, 4.46676e-5));
-
-	float partRate = 0.3f;
-	vector<int> *noCalcIndicies = new vector<int>();
-	vector<float> pwp = advSel.calcPartWeightAvg(partRate, exchanges, noCalcIndicies);
-	assert(withinCloseRange(pwp.at(0), 403.03798));
-	assert(withinCloseRange(pwp.at(1), 403.08002));
-	assert(pwp.size() == 17);
-	assert(find(noCalcIndicies->begin(), noCalcIndicies->end(), 16)!=noCalcIndicies->end()); 
-	assert(find(noCalcIndicies->begin(), noCalcIndicies->end(), 17)==noCalcIndicies->end());
-
-	//used for total volume weighting, excludes volumes for trades whose pwps are not calculated
-	assert(advSel.getLastCumVol(exchanges, noCalcIndicies) == 2700); 
-	float weightedAdvSel = advSel.calcWeightedAdverseSelection(partRate,exchanges);
-	assert(withinCloseRange(weightedAdvSel, -1.62417e-6));
-}
-
-void mergeFiles(vector<string> files){
+void mergeFiles(vector<string> files, string fileName){
 	if (files.size()==0){return;}
-
-	string fileName = "MergedOutput.csv";
 	ofstream fileWriter(fileName);
 	cout<<"Append to file: "<<fileName<<endl;
 	if (fileWriter.is_open()){ fileWriter.close(); }
@@ -88,22 +46,26 @@ int main(int argc, char * argv[]){
 		vector<string> files;
 		string location = string(argv[1]);
 
-		if(strcmp(location.c_str(), string("TEST").c_str())==0){
-			advSelectionTest();
-			cout<<"Unit Test successful"<<endl;
-		}
+		files.push_back(location + "BasicState0.csv");
+		files.push_back(location + "BasicState1000.csv");
+		files.push_back(location + "BasicState2000.csv");
+		files.push_back(location + "BasicState3000.csv");
+		files.push_back(location + "BasicState4000.csv");
+		files.push_back(location + "BasicState5000.csv");
+		files.push_back(location + "BasicState6000.csv");
+		files.push_back(location + "BasicState7000.csv");
+		mergeFiles(files, "BasicStat.csv");
 
-		else{
-			files.push_back(location + "Output_0.csv");
-			files.push_back(location + "Output_1000.csv");
-			files.push_back(location + "Output_2000.csv");
-			files.push_back(location + "Output_3000.csv");
-			files.push_back(location + "Output_4000.csv");
-			files.push_back(location + "Output_5000.csv");
-			files.push_back(location + "Output_6000.csv");
-			files.push_back(location + "Output_7000.csv");
-			mergeFiles(files);
-		}
+		files.clear();
+		files.push_back(location + "AdvSelState0.csv");
+		files.push_back(location + "AdvSelState1000.csv");
+		files.push_back(location + "AdvSelState2000.csv");
+		files.push_back(location + "AdvSelState3000.csv");
+		files.push_back(location + "AdvSelState4000.csv");
+		files.push_back(location + "AdvSelState5000.csv");
+		files.push_back(location + "AdvSelState6000.csv");
+		files.push_back(location + "AdvSelState7000.csv");
+		mergeFiles(files, "AdvSelStat.csv");
 	}
 
 	else if (argc == 4){
@@ -118,7 +80,7 @@ int main(int argc, char * argv[]){
 			AdverseSelection selection(file, AdverseSelection::allStocks.at(i));
 			stringstream ss;
 			ss<<argv[1]<<".csv";
-			selection.outputAdvSelToFile(true, ss.str(), true);
+			selection.calculateAndOutput("BasicState"+ss.str(), "AdvSelState"+ss.str());
 		}
 	}
 }

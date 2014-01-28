@@ -35,9 +35,6 @@
     <ClCompile Include="Ticker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ASUnitTests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdverseSelection.h">
