@@ -32,14 +32,18 @@ private:
 	map<string, double> advSelMap;
 public:
 	static vector<string> allStocks;
-	
 	static void populateStockLists(string hdf5);
+
 	void calcAdverseSelection();
 	void calculatePWPPrice(std::vector <float> participationRates);
+	void aggregTickersAndOutputBasicStat(string input, string output);
+	void aggregTickersAndOutputAdvSelStat(string input, string output);
 	void writeBasicStats(string name);
 	void writeAdvSelStats(string name);
 
 	void computeBuySellNOrderType(bool useLeeReady=false);
+
+	AdverseSelection(){};
 	AdverseSelection(string hdf5Source, string ticker, bool testing=false);
 	void parseHdf5Source(bool trimForTest=false);
 	

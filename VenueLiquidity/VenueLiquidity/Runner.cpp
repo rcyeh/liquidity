@@ -68,6 +68,14 @@ int main(int argc, char * argv[]){
 		mergeFiles(files, "AdvSelStat.csv");
 	}
 
+	else if (argc == 3){
+		AdverseSelection adv;
+		string inputBasicStat = string(argv[1]);
+		string inputAdvSelStat = string(argv[2]);
+		adv.aggregTickersAndOutputBasicStat(inputBasicStat, "BasicStatExchange.csv");
+		adv.aggregTickersAndOutputAdvSelStat(inputAdvSelStat, "AdvSelStatExchange.csv");
+	}
+
 	else if (argc == 4){
 		begin = atoi(argv[1]);
 		end = atoi(argv[2]);

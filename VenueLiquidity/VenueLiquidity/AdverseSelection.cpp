@@ -324,6 +324,53 @@ template<class T, class L> void pushOrAddPush(map<L, T> &m, L key, T vol){
 	}
 }
 
+void AdverseSelection::aggregTickersAndOutputBasicStat(string input, string output){
+	ifstream myfile(input);
+	string l;
+	if (myfile.is_open()){
+		while( getline(myfile, l)){
+			string m;
+			int i=0;
+			char key;
+			istringstream line(l);
+			while(getline(line, m, ',')){
+				switch(i){
+					case 1:key = m.at(0); break;
+					case 2:pushOrAddPush(tradeCountMap, key, atoi(m.c_str())); break;
+					case 3:pushOrAddPush(totalShareMap, key, atoi(m.c_str())); break;
+					case 4:pushOrAddPush(totalPriceVolMap, key, atof(m.c_str())); break;
+				}
+				++i;
+			}
+		}
+		myfile.close();
+	}
+	ticker = "AGGREGATE";
+	writeBasicStats(output);
+}
+
+void AdverseSelection::aggregTickersAndOutputAdvSelStat(string input, string output){
+	ifstream myfile(input);
+	string l;
+	if (myfile.is_open()){
+		while( getline(myfile, l)){
+			string m;
+			int i=0;
+			string key;
+			istringstream line(l);
+			while(getline(line, m, ',')){
+				switch(i){
+					case 1:key = m;break;
+					case 2:pushOrAddPush(advSelMap, key, atof(m.c_str())); break;
+				}
+				++i;
+			}
+		}
+	}
+	ticker = "AGGREGATE";
+	writeAdvSelStats(output);
+}
+
 void AdverseSelection::aggregateUseTickerEx(){
 	for (int i=0; i<trades.size(); ++i){
 		pushOrAddPush(tradeCountMap, trades[i]->exchange, 1);
