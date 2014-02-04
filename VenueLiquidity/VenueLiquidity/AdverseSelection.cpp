@@ -231,8 +231,8 @@ CLASSIFICATION AdverseSelection::tickTest(int i){
 	if (i<=0){
 		return NOT_CLASS; // Base case, shouldn't get triggered
 	}
-	else if (trades.at(i-1) > trades.at(i)){ return SELL;}
-	else if (trades.at(i-1) < trades.at(i)){ return BUY;}
+	else if (trades.at(i-1) > trades.at(i)){ return BUY;}
+	else if (trades.at(i-1) < trades.at(i)){ return SELL;}
 	else { return tickTest(i-1); }
 }
 
@@ -253,9 +253,9 @@ void AdverseSelection::computeBuySellNOrderType(bool useLeeReady){
 		else{	
 			float price = tickData.at(i)->price;		
 			if (price < quote_mid){
-				tickData.at(i)->buy_sell = SELL;
-			}else if (price > quote_mid){
 				tickData.at(i)->buy_sell = BUY;
+			}else if (price > quote_mid){
+				tickData.at(i)->buy_sell = SELL;
 			}else{
 				if (useLeeReady){
 					tickData.at(i)->buy_sell = tickTest(j);
